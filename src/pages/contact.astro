@@ -1,0 +1,445 @@
+---
+/**
+ * contact.astro
+ * ─────────────────────────────────────────────────────────────
+ * Astro + GSAP template — contact page
+ *
+ * Features:
+ *   - Split layout: info left, form right
+ *   - GSAP staggered entrance
+ *   - Client-side validation with inline error states
+ *   - Form submission via fetch (replace endpoint with yours)
+ *   - Social links list
+ * ─────────────────────────────────────────────────────────────
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { socials,topics } from '../lib/consts';
+
+---
+
+<BaseLayout title="Contact">
+  <div class="contact-wrap">
+
+    <!-- ─── LEFT: INFO ─────────────────────────────────────── -->
+    <aside class="info-col">
+
+      <p class="eyebrow" data-reveal="fade">Say hello</p>
+      <h1 class="page-title" data-reveal="lines">
+        <span class="line"><span>Let's</span></span>
+        <span class="line"><span>work</span></span>
+        <span class="line"><span>together.</span></span>
+      </h1>
+
+      <div class="info-block" data-reveal="fade">
+        <p class="info-label">Email</p>
+        <a href="mailto:hello@janedoe.com" class="info-link">
+          hello@janedoe.com
+        </a>
+      </div>
+
+      <div class="info-block" data-reveal="fade">
+        <p class="info-label">Based in</p>
+        <p class="info-text">Paris, France — available remote</p>
+      </div>
+
+      <div class="info-block" data-reveal="fade">
+        <p class="info-label">Elsewhere</p>
+        <ul class="social-list">
+          {socials.map(s => (
+            <li>
+              <a href={s.href} class="social-link" target="_blank" rel="noopener">
+                {s.name} ↗
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+    </aside>
+
+    <!-- ─── RIGHT: FORM ────────────────────────────────────── -->
+    <section class="form-col" data-reveal="fade">
+      <form id="contact-form" novalidate>
+
+        <div class="field-group">
+
+          <div class="field">
+            <label for="name" class="field-label">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              class="field-input"
+              placeholder="Your name"
+              autocomplete="name"
+              required
+            />
+            <p class="field-error" id="name-error">Please enter your name.</p>
+          </div>
+
+          <div class="field">
+            <label for="email" class="field-label">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="field-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+            <p class="field-error" id="email-error">Please enter a valid email.</p>
+          </div>
+
+        </div>
+
+        <div class="field">
+          <label for="subject" class="field-label">Subject</label>
+          <select id="subject" name="subject" class="field-input field-select" required>
+            <option value="" disabled selected>Select a topic</option>
+          <options>
+            {topics.map(t => (
+              <option value={t.value}>{t.label}</option>
+            ))}
+          </select>
+          <p class="field-error" id="subject-error">Please select a topic.</p>
+        </div>
+
+        <div class="field">
+          <label for="message" class="field-label">Message</label>
+          <textarea
+            id="message"
+            name="message"
+            class="field-input field-textarea"
+            placeholder="Tell me about your project…"
+            rows="5"
+            required
+          ></textarea>
+          <p class="field-error" id="message-error">Please enter a message.</p>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="submit-btn" id="submit-btn">
+          <span class="btn-label">Send message</span>
+          <span class="btn-sending" aria-hidden="true">Sending…</span>
+          <span class="btn-sent"    aria-hidden="true">Sent ✓</span>
+        </button>
+
+        <!-- Form-level feedback -->
+        <p class="form-feedback" id="form-error" role="alert">
+          Something went wrong — please try again.
+        </p>
+
+      </form>
+    </section>
+
+  </div>
+</BaseLayout>
+
+<style>
+  :root {
+    --bg:         #0a0a0a;
+    --surface:    #111;
+    --border:     rgba(255,255,255,0.08);
+    --text:       #f0ede6;
+    --muted:      rgba(240,237,230,0.45);
+    --accent:     #e8d5a3;
+    --error:      #e87070;
+    --font-serif: Georgia, serif;
+    --font-mono:  'Courier New', monospace;
+    --header-h:   64px;
+    --pad:        4rem;
+  }
+
+  /* ── Layout ── */
+  .contact-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - var(--header-h));
+    padding-top: var(--header-h);
+  }
+
+  /* ── Shared ── */
+  .eyebrow {
+    font: 0.68rem/1 var(--font-mono);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.5rem;
+  }
+
+  .page-title {
+    font: 400 clamp(3rem, 5.5vw, 5rem)/1 var(--font-serif);
+    color: var(--text);
+    margin: 0 0 3rem;
+    letter-spacing: -.02em;
+  }
+
+  .line        { display: block; overflow: hidden; }
+  .line > span { display: block; }
+
+  /* ── Info col ── */
+  .info-col {
+    padding: 5rem var(--pad);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .info-block {
+    margin-bottom: 2rem;
+  }
+
+  .info-label {
+    font: 0.62rem/1 var(--font-mono);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 .5rem;
+  }
+
+  .info-link,
+  .info-text {
+    font: 0.85rem/1.5 var(--font-mono);
+    color: var(--text);
+    margin: 0;
+  }
+
+  .info-link {
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .info-link:hover { color: var(--accent); }
+
+  .social-list {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+  }
+
+  .social-link {
+    font: 0.82rem/1 var(--font-mono);
+    color: var(--muted);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .social-link:hover { color: var(--accent); }
+
+  /* ── Form col ── */
+  .form-col {
+    padding: 5rem var(--pad);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* ── Fields ── */
+  .field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+  }
+
+  .field-label {
+    font: 0.62rem/1 var(--font-mono);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .field-input {
+    font: 0.8rem/1 var(--font-mono);
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: .75rem 1rem;
+    outline: none;
+    transition: border-color .2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .field-input::placeholder { color: rgba(240,237,230,.2); }
+
+  .field-input:focus { border-color: var(--accent); }
+
+  /* Error state */
+  .field-input.is-invalid  { border-color: var(--error); }
+
+  .field-error {
+    font: 0.62rem/1 var(--font-mono);
+    color: var(--error);
+    margin: 0;
+    display: none;
+  }
+  .field.is-invalid .field-error { display: block; }
+
+  /* Textarea */
+  .field-textarea {
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+  }
+
+  /* Select arrow */
+  .field-select {
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='rgba(240,237,230,0.45)' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    cursor: pointer;
+  }
+
+  /* ── Submit button ── */
+  .submit-btn {
+    font: 0.72rem/1 var(--font-mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    border-radius: 3px;
+    padding: .85rem 1.75rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: opacity .2s;
+    margin-top: .5rem;
+    align-self: flex-start;
+  }
+  .submit-btn:hover { opacity: .85; }
+  .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .btn-sending,
+  .btn-sent    { position: absolute; inset: 0; display: grid; place-items: center; background: inherit; opacity: 0; }
+
+  /* States driven by JS class on form */
+  #contact-form.is-sending .btn-label   { opacity: 0; }
+  #contact-form.is-sending .btn-sending { opacity: 1; }
+  #contact-form.is-sent    .btn-label   { opacity: 0; }
+  #contact-form.is-sent    .btn-sent    { opacity: 1; }
+
+  /* ── Form-level error ── */
+  .form-feedback {
+    font: 0.72rem/1 var(--font-mono);
+    color: var(--error);
+    margin: 1rem 0 0;
+    display: none;
+  }
+  .form-feedback.is-visible { display: block; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .contact-wrap {
+      grid-template-columns: 1fr;
+    }
+    .info-col {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 4rem 1.5rem 3rem;
+    }
+    .form-col       { padding: 3rem 1.5rem 5rem; }
+    .field-group    { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+
+  // ── 1. Entrance animation ──────────────────────────────────
+  gsap.set('[data-reveal="fade"]', { opacity: 0, y: 16 });
+  gsap.set('.line > span',         { y: '110%' });
+
+  gsap.timeline({ defaults: { ease: 'power3.out' }, delay: .1 })
+    .to('[data-reveal="fade"]', {
+      opacity: 1, y: 0,
+      duration: .6,
+      stagger: .12,
+    })
+    .to('.line > span', {
+      y: 0,
+      duration: .8,
+      stagger: .1,
+    }, .15);
+
+  // ── 2. Form validation ─────────────────────────────────────
+  const form      = document.getElementById('contact-form') as HTMLFormElement;
+  const submitBtn = document.getElementById('submit-btn')   as HTMLButtonElement;
+  const formError = document.getElementById('form-error')!;
+
+  // Validate a single field, return true if valid
+  function validateField(input: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): boolean {
+    const field = input.closest('.field')!;
+    const valid  = input.checkValidity();
+    field.classList.toggle('is-invalid', !valid);
+    input.classList.toggle('is-invalid', !valid);
+    return valid;
+  }
+
+  // Validate on blur for instant feedback
+  form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+    '.field-input'
+  ).forEach(input => {
+    input.addEventListener('blur', () => validateField(input));
+    input.addEventListener('input', () => {
+      if (input.closest('.field')!.classList.contains('is-invalid')) {
+        validateField(input);
+      }
+    });
+  });
+
+  // ── 3. Submit ──────────────────────────────────────────────
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Validate all fields
+    const inputs = [...form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('.field-input')];
+    const allValid = inputs.map(validateField).every(Boolean);
+    if (!allValid) return;
+
+    // Loading state
+    form.classList.add('is-sending');
+    submitBtn.disabled = true;
+    formError.classList.remove('is-visible');
+
+    try {
+      // ── Replace this URL with your form endpoint ──
+      // e.g. Formspree: https://formspree.io/f/YOUR_ID
+      //      Netlify:   action="/netlify" (no fetch needed)
+      //      API route: /api/contact
+      const res = await fetch('https://formspree.io/f/YOUR_ID', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+      });
+
+      if (!res.ok) throw new Error('Network response was not ok');
+
+      // Success state
+      form.classList.remove('is-sending');
+      form.classList.add('is-sent');
+
+      // Reset after 3s
+      setTimeout(() => {
+        form.classList.remove('is-sent');
+        form.reset();
+        submitBtn.disabled = false;
+      }, 3000);
+
+    } catch {
+      form.classList.remove('is-sending');
+      submitBtn.disabled = false;
+      formError.classList.add('is-visible');
+    }
+  });
+</script>

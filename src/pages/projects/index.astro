@@ -1,0 +1,420 @@
+---
+/**
+ * projects.astro
+ * ─────────────────────────────────────────────────────────────
+ * Astro + GSAP template — projects index
+ *
+ * Features:
+ *   - Content collection with optional tag filtering
+ *   - Grid ↔ List view toggle
+ *   - ScrollTrigger.batch() card reveals
+ *   - Filter preserves scroll position via history.replaceState
+ * ─────────────────────────────────────────────────────────────
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const projects = await getCollection('projects');
+const allTags   = [...new Set(projects.flatMap(p => p.data.skills ?? []))];
+
+// Sort newest first if year is present
+const sorted = [...projects].sort(
+  (a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0)
+);
+---
+
+<BaseLayout title="Projects">
+
+  <!-- ─── PAGE HEADER ─────────────────────────────────────── -->
+  <header class="page-header">
+    <div class="page-header-left">
+      <p class="eyebrow" data-reveal>Work</p>
+      <h1 class="page-title" data-reveal>
+        <span class="line"><span>All</span></span>
+        <span class="line"><span>Projects</span></span>
+      </h1>
+    </div>
+    <p class="page-count" data-reveal>
+      <span id="visible-count">{sorted.length}</span>&nbsp;/ {sorted.length}
+    </p>
+  </header>
+
+  <!-- ─── TOOLBAR (filters + view toggle) ─────────────────── -->
+  <div class="toolbar" data-reveal>
+
+    <!-- Tag filters -->
+    <nav class="filters" aria-label="Filter by tag">
+      <button class="filter-btn is-active" data-filter="all">All</button>
+      {allTags.map(tag => (
+        <button class="filter-btn" data-filter={tag}>{tag}</button>
+      ))}
+    </nav>
+
+    <!-- Grid / List toggle -->
+    <div class="view-toggle" role="group" aria-label="View mode">
+      <button class="view-btn is-active" data-view="grid" aria-label="Grid view">
+        <!-- 2×2 dot grid icon -->
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="0" y="0" width="6" height="6" rx="1" fill="currentColor"/>
+          <rect x="8" y="0" width="6" height="6" rx="1" fill="currentColor"/>
+          <rect x="0" y="8" width="6" height="6" rx="1" fill="currentColor"/>
+          <rect x="8" y="8" width="6" height="6" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+      <button class="view-btn" data-view="list" aria-label="List view">
+        <!-- 3-line icon -->
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="0" y="1"  width="14" height="1.5" rx="1" fill="currentColor"/>
+          <rect x="0" y="6"  width="14" height="1.5" rx="1" fill="currentColor"/>
+          <rect x="0" y="11" width="14" height="1.5" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ─── PROJECT GRID ─────────────────────────────────────── -->
+  <main class="grid" id="grid">
+    {sorted.map((project, i) => (
+      
+        <a href={`/projects/${project.data.slug}`}
+        class="card"
+        data-tags={(project.data.skills ?? []).join(',')}
+      >
+        <!-- Grid layout: image on top -->
+        <div class="card-media">
+          <img
+            src={project.data.imageUrl}
+            alt={project.data.title}
+            loading={i < 4 ? 'eager' : 'lazy'}
+          />
+          <div class="card-overlay">
+            <span>View project ↗</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-row">
+            <h2 class="card-title">{project.data.title}</h2>
+            {project.data.date && <span class="card-year">{project.data.date.toDateString()}</span>}
+          </div>
+          <p class="card-desc">{project.data.description}</p>
+          {(project.data.skills ?? []).length > 0 && (
+            <ul class="tag-list">
+              {(project.data.skills ?? []).map((skill: string) => <li class="tag">{skill}</li>)}
+            </ul>
+          )}
+        </div>
+
+        <!-- List layout: these are repositioned via CSS in list mode -->
+        <span class="card-index" aria-hidden="true">
+          {String(i + 1).padStart(2, '0')}
+        </span>
+      </a>
+    ))}
+  </main>
+
+  <!-- ─── EMPTY STATE ──────────────────────────────────────── -->
+  <p class="empty-state" id="empty-state" aria-live="polite">
+    No projects match that filter.
+  </p>
+
+</BaseLayout>
+
+<style>
+  :root {
+    --bg:         #0a0a0a;
+    --surface:    #111;
+    --border:     rgba(255,255,255,0.08);
+    --text:       #f0ede6;
+    --muted:      rgba(240,237,230,0.45);
+    --accent:     #e8d5a3;
+    --font-serif: Georgia, serif;
+    --font-mono:  'Courier New', monospace;
+    --pad:        4rem;
+    --header-h:   64px;
+  }
+
+  /* ── Page header ── */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: calc(var(--header-h) + 4rem) var(--pad) 2.5rem;
+  }
+
+  .eyebrow {
+    font: 0.68rem/1 var(--font-mono);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.2rem;
+  }
+
+  .page-title {
+    font: 400 clamp(3rem, 7vw, 5.5rem)/1 var(--font-serif);
+    color: var(--text);
+    margin: 0;
+    letter-spacing: -.02em;
+  }
+
+  .line        { display: block; overflow: hidden; }
+  .line > span { display: block; } /* GSAP target */
+
+  .page-count {
+    font: 0.7rem/1 var(--font-mono);
+    color: var(--muted);
+    margin: 0;
+    padding-bottom: 0.5rem;
+  }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--pad) 1.5rem;
+    gap: 1rem;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+
+  .filter-btn {
+    font: 0.65rem/1 var(--font-mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .35rem .8rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .filter-btn:hover,
+  .filter-btn.is-active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(232,213,163,.06);
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: .25rem;
+    flex-shrink: 0;
+  }
+  .view-btn {
+    display: grid;
+    place-items: center;
+    width: 32px; height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+  .view-btn:hover,
+  .view-btn.is-active { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Grid (default view) ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1px;
+    padding: 0 var(--pad) 6rem;
+    background: var(--border);
+  }
+
+  /* ── List view override ── */
+  .grid.is-list {
+    grid-template-columns: 1fr;
+    background: transparent;
+    gap: 0;
+  }
+
+  /* ── Card ── */
+  .card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bg);
+    overflow: hidden;
+    position: relative;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: background .2s;
+  }
+  .card:hover { background: var(--surface); }
+
+  .card-media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+  }
+  .card-media img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .6s cubic-bezier(.25,.46,.45,.94);
+  }
+  .card:hover .card-media img { transform: scale(1.04); }
+
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10,10,10,.5);
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem 1.25rem;
+    opacity: 0;
+    transition: opacity .25s;
+  }
+  .card-overlay span {
+    font: 0.68rem/1 var(--font-mono);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .card:hover .card-overlay { opacity: 1; }
+
+  .card-body {
+    padding: 1.25rem 1.25rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+  }
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
+  .card-title { font: 400 1.15rem/1.2 var(--font-serif); color: var(--text); margin: 0; }
+  .card-year  { font: 0.62rem/1 var(--font-mono); color: var(--muted); white-space: nowrap; }
+  .card-desc  { font: 0.75rem/1.65 var(--font-mono); color: var(--muted); margin: 0; }
+  .tag-list   { display: flex; flex-wrap: wrap; gap: .35rem; list-style: none; margin: 0; padding: 0; }
+  .tag        { font: 0.6rem/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; padding: .25rem .55rem; border: 1px solid var(--border); border-radius: 3px; color: var(--muted); }
+
+  .card-index {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    font: 0.6rem/1 var(--font-mono);
+    color: rgba(255,255,255,.1);
+    pointer-events: none;
+  }
+
+  /* ── List card overrides ── */
+  .grid.is-list .card {
+    flex-direction: row;
+    align-items: stretch;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+  }
+  .grid.is-list .card-media {
+    width: 200px;
+    flex-shrink: 0;
+    aspect-ratio: unset;
+  }
+  .grid.is-list .card-body { justify-content: center; }
+  .grid.is-list .card-index { top: 50%; right: 1.5rem; transform: translateY(-50%); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    display: none;
+    text-align: center;
+    font: 0.8rem/1 var(--font-mono);
+    color: var(--muted);
+    padding: 4rem;
+  }
+  .empty-state.is-visible { display: block; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: calc(var(--header-h) + 3rem) 1.5rem 2rem; }
+    .toolbar     { padding: 0 1.5rem 1.5rem; }
+    .grid        { padding: 0 0 4rem; }
+    .grid.is-list .card-media { width: 120px; }
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ── 1. Page entrance ───────────────────────────────────────
+  gsap.timeline({ defaults: { ease: 'power3.out' } })
+    .to('.eyebrow',       { opacity: 1, y: 0, duration: .5 })
+    .to('.line > span',   { y: 0, duration: .8, stagger: .1 }, .1)
+    .to('.page-count',    { opacity: 1, y: 0, duration: .4 }, .3)
+    .to('.toolbar',       { opacity: 1, y: 0, duration: .4 }, .4);
+
+  // Initial hidden state for non-card elements
+  gsap.set(['.eyebrow', '.page-count', '.toolbar'], { opacity: 0, y: 12 });
+  gsap.set('.line > span', { y: '110%' });
+
+  // ── 2. Card ScrollTrigger batch ────────────────────────────
+  function initScrollTrigger() {
+    ScrollTrigger.batch('.card:not(.is-hidden)', {
+      onEnter: batch => gsap.to(batch, {
+        opacity: 1, y: 0,
+        duration: .6,
+        stagger: .08,
+        ease: 'power2.out',
+      }),
+      start: 'top 90%',
+      once: true,
+    });
+  }
+  initScrollTrigger();
+
+  // ── 3. Tag filtering ───────────────────────────────────────
+  const filterBtns  = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+  const cards       = document.querySelectorAll<HTMLElement>('.card');
+  const grid        = document.getElementById('grid')!;
+  const emptyState  = document.getElementById('empty-state')!;
+  const countEl     = document.getElementById('visible-count')!;
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter ?? 'all';
+
+      filterBtns.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+
+      let visible = 0;
+      cards.forEach(card => {
+        const tags   = card.dataset.tags?.split(',') ?? [];
+        const show   = filter === 'all' || tags.includes(filter);
+        card.classList.toggle('is-hidden', !show);
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+
+      countEl.textContent   = String(visible);
+      emptyState.classList.toggle('is-visible', visible === 0);
+
+      ScrollTrigger.refresh();
+    });
+  });
+
+  // ── 4. Grid ↔ List toggle ──────────────────────────────────
+  const viewBtns = document.querySelectorAll<HTMLButtonElement>('.view-btn');
+
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.view!;
+
+      viewBtns.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+
+      grid.classList.toggle('is-list', view === 'list');
+      ScrollTrigger.refresh();
+    });
+  });
+</script>

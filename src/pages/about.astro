@@ -1,0 +1,467 @@
+---
+/**
+ * about.astro
+ * ─────────────────────────────────────────────────────────────
+ * Astro + GSAP template — about page
+ *
+ * Features:
+ *   - Horizontal scrolling marquee (CSS only, no JS)
+ *   - ScrollTrigger pinned image on desktop
+ *   - Staggered skill/service list reveals
+ *   - Timeline / experience section
+ * ─────────────────────────────────────────────────────────────
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { services, experience, stack, portrait, education } from "../lib/consts";
+// ── Edit these to match your content ──────────────────────────
+---
+
+<BaseLayout title="About">
+  <!-- ─── HERO ─────────────────────────────────────────────── -->
+  <section class="about-hero">
+    <div class="about-hero-text">
+      <p class="eyebrow" data-reveal="fade">About</p>
+      <h1 class="about-title" data-reveal="lines">
+        <span class="line"><span>Designer.</span></span>
+        <span class="line"><span>Developer.</span></span>
+        <span class="line"><span>Educator.</span></span>
+      </h1>
+      <p class="about-intro" data-reveal="fade">
+        Independent builder specialising in Astro. I design and build fast,
+        intentional websites — tools and products that are as considered under
+        the hood as they look on screen.
+      </p>
+    </div>
+
+    <!-- Image pinned on desktop via ScrollTrigger -->
+    <div class="about-hero-media" id="sticky-media">
+      <img
+        src={portrait}
+        alt="Portrait"
+        class="about-portrait"
+        loading="eager"
+      />
+    </div>
+  </section>
+
+  <!-- ─── MARQUEE ──────────────────────────────────────────── -->
+  <!--
+    Pure CSS marquee — no JS required.
+    Duplicate the inner list so it tiles seamlessly.
+  -->
+  <div class="marquee" aria-hidden="true">
+    <ul class="marquee-track">
+      {
+        [...stack, ...stack].map((item) => (
+          <li class="marquee-item">
+            <span class="marquee-dot">◆</span>
+            {item}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <!-- ─── SERVICES ─────────────────────────────────────────── -->
+  <section class="services section">
+    <div class="section-header" data-reveal="fade">
+      <p class="eyebrow">What I do</p>
+    </div>
+    <ul class="service-list">
+      {
+        services.map((s, i) => (
+          <li class="service-item" data-service>
+            <span class="service-num">0{i + 1}</span>
+            <div class="service-body">
+              <h3 class="service-title">{s.title}</h3>
+              <p class="service-desc">{s.desc}</p>
+            </div>
+            <span class="service-arrow">→</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- ─── EXPERIENCE ───────────────────────────────────────── -->
+  <section class="experience section">
+    <div class="section-header" data-reveal="fade">
+      <p class="eyebrow">Experience</p>
+    </div>
+    <ol class="timeline">
+      {
+        experience.map((e) => (
+          <li class="timeline-item" data-timeline>
+            <span class="timeline-year">{e.year}</span>
+            <div class="timeline-body">
+              <p class="timeline-role">{e.role}</p>
+              <p class="timeline-place">{e.place}</p>
+              <p class="timeline-desc">{e.desc}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+  <section class="education section">
+    <div class="section-header" data-reveal="fade">
+      <p class="eyebrow">Education</p>
+    </div>
+    <ol class="timeline">
+      {
+        education.map((e) => (
+          <li class="timeline-item" data-timeline>
+            <span class="timeline-year">{e.year}</span>
+            <div class="timeline-body">
+              <p class="timeline-role">{e.degree}</p>
+              <p class="timeline-place">{e.school}</p>
+              <p class="timeline-desc">{e.desc}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+</BaseLayout>
+
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --border: rgba(255, 255, 255, 0.08);
+    --text: #f0ede6;
+    --muted: rgba(240, 237, 230, 0.45);
+    --accent: #e8d5a3;
+    --font-serif: Georgia, serif;
+    --font-mono: "Courier New", monospace;
+    --pad: 4rem;
+    --header-h: 64px;
+  }
+
+  /* ── Shared ── */
+  .eyebrow {
+    font: 0.68rem/1 var(--font-mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.25rem;
+  }
+  .line {
+    display: block;
+    overflow: hidden;
+  }
+  .line > span {
+    display: block;
+  }
+  .section {
+    padding: 5rem var(--pad);
+    border-top: 1px solid var(--border);
+  }
+  .section-header {
+    margin-bottom: 2.5rem;
+  }
+
+  /* ── Hero ── */
+  .about-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - var(--header-h));
+    padding-top: var(--header-h);
+  }
+
+  .about-hero-text {
+    padding: 5rem var(--pad);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid var(--border);
+  }
+
+  .about-title {
+    font: 400 clamp(3rem, 5.5vw, 5.5rem)/1 var(--font-serif);
+    color: var(--text);
+    margin: 0 0 2rem;
+    letter-spacing: -0.02em;
+  }
+
+  .about-intro {
+    font: 0.85rem/1.75 var(--font-mono);
+    color: var(--muted);
+    margin: 0;
+    max-width: 42ch;
+  }
+
+  /* Sticky image panel */
+  .about-hero-media {
+    position: sticky;
+    top: var(--header-h);
+    height: calc(100vh - var(--header-h));
+    overflow: hidden;
+  }
+
+  .about-portrait {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* GSAP will animate scale on scroll */
+    transform-origin: center center;
+  }
+
+  /* ── Marquee ── */
+  .marquee {
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0.9rem 0;
+    background: var(--surface);
+  }
+
+  .marquee-track {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: max-content;
+    /* Animate from 0 to -50% — the list is doubled so it tiles */
+    animation: marquee 24s linear infinite;
+  }
+
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .marquee-item {
+    font: 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .marquee-dot {
+    font-size: 0.45rem;
+    color: var(--accent);
+  }
+
+  /* ── Services ── */
+  .service-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .service-item {
+    display: grid;
+    grid-template-columns: 3rem 1fr auto;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(16px);
+    cursor: default;
+    transition: background 0.2s;
+  }
+
+  .service-item:first-child {
+    border-top: 1px solid var(--border);
+  }
+
+  .service-num {
+    font: 0.6rem/1 var(--font-mono);
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .service-title {
+    font: 400 1.1rem/1.2 var(--font-serif);
+    color: var(--text);
+    margin: 0 0 0.4rem;
+    transition: color 0.2s;
+  }
+
+  .service-item:hover .service-title {
+    color: var(--accent);
+  }
+
+  .service-desc {
+    font: 0.75rem/1.6 var(--font-mono);
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .service-arrow {
+    font-size: 1.1rem;
+    color: var(--border);
+    transition:
+      color 0.2s,
+      transform 0.2s;
+  }
+
+  .service-item:hover .service-arrow {
+    color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  /* ── Experience ── */
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 2rem;
+    padding: 1.75rem 0;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .timeline-item:first-child {
+    border-top: 1px solid var(--border);
+  }
+
+  .timeline-year {
+    font: 0.65rem/1 var(--font-mono);
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    padding-top: 0.2rem;
+  }
+
+  .timeline-role {
+    font: 400 1rem/1.2 var(--font-serif);
+    color: var(--text);
+    margin: 0 0 0.25rem;
+  }
+
+  .timeline-place {
+    font: 0.68rem/1 var(--font-mono);
+    color: var(--accent);
+    margin: 0 0 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .timeline-desc {
+    font: 0.75rem/1.65 var(--font-mono);
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .about-hero {
+      grid-template-columns: 1fr;
+    }
+    .about-hero-text {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 4rem 1.5rem 3rem;
+    }
+    .about-hero-media {
+      position: relative;
+      height: 60vw;
+      top: 0;
+    }
+    .section {
+      padding: 4rem 1.5rem;
+    }
+    .timeline-item {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+    .service-item {
+      grid-template-columns: 2.5rem 1fr;
+    }
+    .service-arrow {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ── 1. Set initial hidden states ───────────────────────────
+  gsap.set('[data-reveal="fade"]', { opacity: 0, y: 14 });
+  gsap.set(".line > span", { y: "110%" });
+
+  // ── 2. Hero entrance ───────────────────────────────────────
+  gsap
+    .timeline({ defaults: { ease: "power3.out" }, delay: 0.1 })
+    .to(".eyebrow", { opacity: 1, y: 0, duration: 0.5 })
+    .to(".line > span", { y: 0, duration: 0.85, stagger: 0.12 }, 0.1)
+    .to(".about-intro", { opacity: 1, y: 0, duration: 0.5 }, 0.45);
+
+  // ── 3. Portrait subtle scale on scroll ─────────────────────
+  gsap.to(".about-portrait", {
+    scrollTrigger: {
+      trigger: ".about-hero-media",
+      start: "top top",
+      end: "bottom top",
+      scrub: 1.5,
+    },
+    scale: 1.08,
+    ease: "none",
+  });
+
+  // ── 4. Section fade-reveals ────────────────────────────────
+  // All [data-reveal="fade"] elements not in the hero
+  gsap.utils
+    .toArray<HTMLElement>('[data-reveal="fade"]:not(.about-hero-text *)')
+    .forEach((el) => {
+      gsap.to(el, {
+        scrollTrigger: { trigger: el, start: "top 88%", once: true },
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+      });
+    });
+
+  // ── 5. Services — stagger on enter ────────────────────────
+  ScrollTrigger.batch("[data-service]", {
+    onEnter: (batch) =>
+      gsap.to(batch, {
+        opacity: 1,
+        y: 0,
+        duration: 0.55,
+        stagger: 0.1,
+        ease: "power2.out",
+      }),
+    start: "top 88%",
+    once: true,
+  });
+
+  // ── 6. Timeline items ─────────────────────────────────────
+  ScrollTrigger.batch("[data-timeline]", {
+    onEnter: (batch) =>
+      gsap.to(batch, {
+        opacity: 1,
+        y: 0,
+        duration: 0.55,
+        stagger: 0.1,
+        ease: "power2.out",
+      }),
+    start: "top 88%",
+    once: true,
+  });
+</script>

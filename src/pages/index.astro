@@ -1,17 +1,461 @@
 ---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { Image } from "astro:assets";
+import { title, fullName, subtitle, companyName, workType } from "../lib/consts";
+const projects = await getCollection("projects");
 
+// Collect unique tags across all projects
+const allTags = [...new Set(projects.flatMap((p) => p.data.skills ?? []))];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title={title}>
+  <!-- ─── HERO ─────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-eyebrow">{workType}</div>
+    <h1 class="hero-title">
+      <span class="line" data-hero-line>{fullName}</span>
+    </h1>
+    <p class="hero-sub" data-hero-sub>
+      {subtitle}
+    </p>
+    <div class="hero-meta" data-hero-meta>
+      <span
+        >{
+          projects.length ? `${projects.length} projects` : "No projects yet"
+        }</span
+      >
+      <span class="dot">·</span>
+      <span>{companyName}</span>
+    </div>
+  </section>
+
+  <!-- ─── FILTER BAR ────────────────────────────────────────── -->
+  {
+    allTags.length > 0 && (
+      <nav class="filters" aria-label="Filter projects by tag">
+        <button class="filter-btn active" data-filter="all">
+          All
+        </button>
+        {allTags.map((tag) => (
+          <button class="filter-btn" data-filter={tag}>
+            {tag}
+          </button>
+        ))}
+      </nav>
+    )
+  }
+
+  <!-- ─── GRID ──────────────────────────────────────────────── -->
+  <main
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+    id="project-grid"
+  >
+    {
+      projects.map((project, i) => (
+        <a
+          href={`/projects/${project.data.slug}`}
+          class="project-card"
+          data-tags={(project.data.skills ?? []).join(",")}
+          data-index={i}
+        >
+          <div class="card-media">
+            {project.data.imageUrl && (
+              <Image
+                src={project.data.imageUrl}
+                alt={project.data.title}
+                loading="eager"
+                aspect-ratio="16/9"
+                width={600}
+                height={400}
+              />
+            )}
+            <div class="card-overlay">
+              <span class="view-label">View project ↗</span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="card-top">
+              <h2 class="card-title">{project.data.title}</h2>
+              {project.data.date && (
+                <span class="card-year">{project.data.date.toDateString()}</span>
+              )}
+            </div>
+            <p class="card-desc">{project.data.description}</p>
+            {project.data.skills && project.data.skills.length > 0 && (
+              <ul class="tag-list" aria-label="Project skills">
+                {project.data.skills.map((skill: string) => (
+                  <li class="tag">{skill}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div class="card-index" aria-hidden="true">
+            {String(i + 1).padStart(2, "0")}
+          </div>
+        </a>
+      ))
+    }
+  </main>
+</BaseLayout>
+
+<!-- ─── STYLES ────────────────────────────────────────────────── -->
+<style>
+  /* ── Tokens ── */
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: rgba(255, 255, 255, 0.07);
+    --text: #f0ede6;
+    --muted: rgba(240, 237, 230, 0.45);
+    --accent: #e8d5a3;
+    --radius: 4px;
+    --font-head: "Playfair Display", Georgia, serif;
+    --font-body: "DM Mono", "Fira Mono", monospace;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 7rem 4rem 3.5rem;
+    max-width: 900px;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .hero-title {
+    font-family: var(--font-head);
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin: 0 0 1.5rem;
+  }
+
+  .hero-title .line {
+    display: block;
+    overflow: hidden;
+  }
+
+  .hero-title .line > span {
+    display: block;
+    transform: translateY(110%);
+  }
+
+  .hero-sub {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0 0 1.2rem;
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  .hero-meta {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    opacity: 0;
+  }
+
+  .dot {
+    opacity: 0.3;
+  }
+
+  /* ── Filter bar ── */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0 4rem 2.5rem;
+  }
+
+  .filter-btn {
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      color 0.2s,
+      background 0.2s;
+  }
+
+  .filter-btn:hover,
+  .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(232, 213, 163, 0.06);
+  }
+
+  /* ── Grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1px;
+    padding: 10 4rem 6rem;
+    background: var(--border); /* border-as-gap trick */
+  }
+
+  /* ── Card ── */
+  .project-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bg);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(32px);
+    transition: background 0.25s;
+  }
+
+  .project-card:hover {
+    background: var(--surface);
+  }
+
+  /* Media */
+  .card-media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+  }
+
+  .card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .project-card:hover .card-media img {
+    transform: scale(1.05);
+  }
+
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.55);
+    display: flex;
+    align-items: flex-end;
+    padding: 1.25rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .project-card:hover .card-overlay {
+    opacity: 1;
+  }
+
+  .view-label {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  /* Body */
+  .card-body {
+    padding: 1.5rem 1.5rem 2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .card-title {
+    font-family: var(--font-head);
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .card-year {
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    color: var(--muted);
+    white-space: nowrap;
+    letter-spacing: 0.08em;
+  }
+
+  .card-desc {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    line-height: 1.65;
+    color: var(--muted);
+    margin: 0;
+    flex: 1;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-top: auto;
+  }
+
+  .tag {
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+  }
+
+  /* Index number */
+  .card-index {
+    position: absolute;
+    bottom: 1.25rem;
+    right: 1.5rem;
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    color: rgba(255, 255, 255, 0.1);
+    letter-spacing: 0.05em;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ── Hidden (filter) ── */
+  .project-card.hidden {
+    display: none;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .hero {
+      padding: 5rem 1.5rem 2.5rem;
+    }
+    .filters {
+      padding: 0 1.5rem 2rem;
+    }
+    .grid {
+      padding: 0 0 4rem;
+      grid-template-columns: 1fr;
+    }
+    .cta {
+      padding: 4rem 1.5rem 5rem;
+    }
+  }
+</style>
+
+<!-- ─── SCRIPT ────────────────────────────────────────────────── -->
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ── Hero entrance ──────────────────────────────────────────
+  const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+  // Wrap each .line's text content in a span for clip reveal
+  document.querySelectorAll("[data-hero-line]").forEach((line) => {
+    line.innerHTML = `<span>${line.textContent}</span>`;
+  });
+
+  tl.to("[data-hero-line] span", {
+    y: 0,
+    duration: 0.9,
+    stagger: 0.12,
+  })
+    .to(
+      ".hero-eyebrow",
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+      },
+      0,
+    )
+    .to(
+      "[data-hero-sub]",
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+      },
+      0.4,
+    )
+    .to(
+      "[data-hero-meta]",
+      {
+        opacity: 1,
+        duration: 0.4,
+      },
+      0.6,
+    );
+
+  // ── Cards — ScrollTrigger batch ────────────────────────────
+  ScrollTrigger.batch(".project-card", {
+    onEnter: (batch) =>
+      gsap.to(batch, {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        stagger: 0.1,
+        ease: "power2.out",
+      }),
+    start: "top 88%",
+    once: true,
+  });
+
+  // ── Tag filters ────────────────────────────────────────────
+  const filterBtns =
+    document.querySelectorAll<HTMLButtonElement>(".filter-btn");
+  const cards = document.querySelectorAll<HTMLElement>(".project-card");
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const filter = btn.dataset.filter ?? "all";
+
+      filterBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      cards.forEach((card) => {
+        const tags = card.dataset.tags?.split(",") ?? [];
+        const show = filter === "all" || tags.includes(filter);
+        card.classList.toggle("hidden", !show);
+      });
+
+      // Refresh ScrollTrigger after layout shift
+      ScrollTrigger.refresh();
+    });
+  });
+</script>

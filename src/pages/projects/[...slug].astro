@@ -1,0 +1,107 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {  render } from "astro:content";
+export async function getStaticPaths() {
+    const entries = await getCollection("projects");
+    return entries.map((entry) => ({
+        params: { slug: entry.data.slug },
+        props: { entry },
+    }));
+}
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<BaseLayout title={entry.data.title}>
+    <article class="container">
+        <div class="parallax-wrapper">
+            <img src={entry.data.imageUrl} class="hero-img" />
+        </div>
+        <a href="/" class="text-white decoration-none p-2 mt-2 bg-gray-800 rounded-lg inline-block"
+            >Back to Portfolio</a
+        >
+
+        <h1 class="title">{entry.data.title}</h1>
+
+        <div class="skills-box">
+            {
+                entry.data.skills?.map((skill) => (
+                    <span class="tag">{skill}</span>
+                ))
+            }
+        </div>
+
+        <section class="body-text">
+            <Content />
+        </section>
+    </article>
+</BaseLayout>
+
+<style>
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 5vh 2rem;
+    }
+    .parallax-wrapper {
+        height: 450px;
+        overflow: hidden;
+        position: relative;
+        border-radius: 20px;
+    }
+    .hero-img {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        object-fit: cover;
+    }
+    .title {
+        font-size: clamp(2rem, 8vw, 4rem);
+        margin: 2rem 0;
+        opacity: 0;
+    }
+    .tag {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: var(--card-bg);
+        border-radius: 50px;
+        opacity: 0;
+        margin-right: 0.5rem;
+    }
+    .body-text {
+        line-height: 1.8;
+        margin-top: 3rem;
+        opacity: 0;
+    }
+</style>
+
+<script>
+    import { gsap } from "gsap";
+    import { ScrollTrigger } from "gsap/ScrollTrigger";
+    gsap.registerPlugin(ScrollTrigger);
+
+    const tl = gsap.timeline();
+
+    // Entrance sequence
+    tl.to(".title", { opacity: 1, y: -10, duration: 1 })
+        .to(
+            ".tag",
+            { opacity: 1, scale: 1, stagger: 0.1, ease: "back.out(2)" },
+            "-=0.6",
+        )
+        .to(".body-text", { opacity: 1, duration: 1 }, "-=0.4");
+
+    // Parallax Scroll
+    gsap.to(".hero-img", {
+        yPercent: 20,
+        ease: "none",
+        scrollTrigger: {
+            trigger: ".parallax-wrapper",
+            start: "top center",
+            end: "bottom top",
+            scrub: true,
+        },
+    });
+</script>

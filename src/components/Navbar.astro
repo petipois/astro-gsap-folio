@@ -1,0 +1,299 @@
+---
+/**
+ * Nav.astro
+ * ─────────────────────────────────────────────────────────────
+ * Astro + GSAP template — responsive nav with active link state
+ *
+ * Usage: <Nav /> in BaseLayout.astro
+ * ─────────────────────────────────────────────────────────────
+ */
+
+import { companyName, navLinks } from '../lib/consts';
+// Astro.url lets us mark the active link at build/request time
+const { pathname } = Astro.url;
+// Exact match for '/', prefix match for everything else
+const isActive = (href: string) =>
+  href === '/' ? pathname === '/' : pathname.startsWith(href);
+---
+
+<header class="site-header" id="site-header">
+
+  <!-- ── Logo / wordmark ── -->
+  <a href="/" class="logo uppercase" aria-label="Home">
+    {companyName}<span class="logo-dot">.</span>
+  </a>
+
+  <!-- ── Desktop nav ── -->
+  <nav class="nav-links" aria-label="Primary navigation">
+    {navLinks.map(link => (
+      
+       <a href={link.href}
+        class:list={['nav-link', { 'is-active': isActive(link.href) }]}
+        aria-current={isActive(link.href) ? 'page' : undefined}
+      >
+        {link.name}
+      </a>
+    ))}
+  </nav>
+
+  <!-- ── CTA (optional — remove if unneeded) ── -->
+  <a href="/contact" class="nav-cta">Work with me</a>
+
+  <!-- ── Mobile toggle ── -->
+  <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false">
+    <span class="burger-bar"></span>
+    <span class="burger-bar"></span>
+  </button>
+
+</header>
+
+<!-- ── Mobile drawer ── -->
+<div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+  <nav aria-label="Mobile navigation">
+    {navLinks.map((link, i) => (
+      
+     <a   href={link.href}
+        class:list={['mobile-link', { 'is-active': isActive(link.href) }]}
+        data-index={i}
+      >
+        <span class="mobile-link-num">0{i + 1}</span>
+        {link.name}
+      </a>
+    ))}
+  </nav>
+</div>
+
+<style>
+  /* ── Tokens — inherit from :root or override here ── */
+  :root {
+    --bg:        #0a0a0a;
+    --surface:   #111;
+    --border:    rgba(255,255,255,0.08);
+    --text:      #f0ede6;
+    --muted:     rgba(240,237,230,0.45);
+    --accent:    #e8d5a3;
+    --font-serif: Georgia, serif;
+    --font-mono:  'Courier New', monospace;
+    --header-h:  64px;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    padding: 0 2.5rem;
+    gap: 2rem;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    /* Start invisible — GSAP animates in */
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  /* ── Logo ── */
+  .logo {
+    font: 400 1rem/1 var(--font-serif);
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+    margin-right: auto; /* pushes nav to the right */
+  }
+  .logo-dot { color: var(--accent); }
+
+  /* ── Desktop nav links ── */
+  .nav-links {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+
+  .nav-link {
+    font: 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 3px;
+    transition: color 0.2s, background 0.2s;
+    position: relative;
+  }
+
+  .nav-link:hover { color: var(--text); }
+
+  /* Active underline */
+  .nav-link.is-active {
+    color: var(--accent);
+  }
+  .nav-link.is-active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; /* sits on the header border */
+    left: 0.75rem;
+    right: 0.75rem;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  /* ── CTA button ── */
+  .nav-cta {
+    font: 0.68rem/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--accent);
+    text-decoration: none;
+    padding: 0.55rem 1rem;
+    border-radius: 3px;
+    transition: opacity 0.2s;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* ── Burger (mobile only) ── */
+  .burger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+
+  .burger-bar {
+    display: block;
+    width: 22px;
+    height: 1px;
+    background: var(--text);
+    transform-origin: center;
+    transition: transform 0.3s, opacity 0.3s;
+  }
+
+  /* Burger → X when open */
+  .burger[aria-expanded="true"] .burger-bar:first-child {
+    transform: translateY(3px) rotate(45deg);
+  }
+  .burger[aria-expanded="true"] .burger-bar:last-child {
+    transform: translateY(-3px) rotate(-45deg);
+  }
+
+  /* ── Mobile drawer ── */
+  .mobile-menu {
+    display: none; /* block on mobile via media query */
+    position: fixed;
+    inset: var(--header-h) 0 0 0;
+    z-index: 99;
+    background: var(--bg);
+    padding: 3rem 2.5rem;
+    flex-direction: column;
+    /* Initial state — GSAP slides in from top */
+    clip-path: inset(0 0 100% 0);
+  }
+
+  .mobile-link {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    font: 400 clamp(2rem, 8vw, 3.5rem)/1.15 var(--font-serif);
+    color: var(--text);
+    text-decoration: none;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateX(-16px);
+    transition: color 0.2s;
+  }
+
+  .mobile-link:hover,
+  .mobile-link.is-active { color: var(--accent); }
+
+  .mobile-link-num {
+    font: 0.65rem/1 var(--font-mono);
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Responsive breakpoints ── */
+  @media (max-width: 768px) {
+    .nav-links, .nav-cta { display: none; }
+    .burger              { display: flex; }
+    .mobile-menu         { display: flex; }
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+
+  // ── 1. Header entrance on load ─────────────────────────────
+  gsap.to('#site-header', {
+    opacity: 1,
+    y: 0,
+    duration: 0.6,
+    ease: 'power2.out',
+    delay: 0.1,
+  });
+
+  // ── 2. Scroll — add background once user scrolls past hero ─
+  const header = document.getElementById('site-header')!;
+
+  ScrollTrigger_lite(header);
+
+  function ScrollTrigger_lite(el: HTMLElement) {
+    // Lightweight scroll watcher — no GSAP ScrollTrigger needed for this
+    const onScroll = () => {
+      el.classList.toggle('is-scrolled', window.scrollY > 40);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // run once on load
+  }
+
+  // ── 3. Mobile menu open / close ───────────────────────────
+  const burger     = document.getElementById('burger')!;
+  const mobileMenu = document.getElementById('mobile-menu')!;
+  const mobileLinks = mobileMenu.querySelectorAll('.mobile-link');
+
+  let menuOpen = false;
+
+  // Pre-build the open/close timelines once
+  const openTl = gsap.timeline({ paused: true })
+    .to(mobileMenu, {
+      clipPath: 'inset(0 0 0% 0)',
+      duration: 0.45,
+      ease: 'power3.inOut',
+    })
+    .to(mobileLinks, {
+      opacity: 1,
+      x: 0,
+      duration: 0.35,
+      stagger: 0.06,
+      ease: 'power2.out',
+    }, '-=0.2');
+
+  burger.addEventListener('click', () => {
+    menuOpen = !menuOpen;
+    burger.setAttribute('aria-expanded', String(menuOpen));
+    mobileMenu.setAttribute('aria-hidden', String(!menuOpen));
+
+    if (menuOpen) {
+      openTl.play();
+    } else {
+      openTl.reverse();
+    }
+  });
+
+  // Close on link click
+  mobileLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      menuOpen = false;
+      burger.setAttribute('aria-expanded', 'false');
+      mobileMenu.setAttribute('aria-hidden', 'true');
+      openTl.reverse();
+    });
+  });
+</script>
