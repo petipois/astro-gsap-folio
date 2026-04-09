@@ -1,8 +1,9 @@
+export const emailAddress = "hello@janedoe.com";
 export const navLinks = [
-  { name: 'Home',     href: '/' },
+  { name: 'Home', href: '/' },
   { name: 'Projects', href: '/projects' },
-  { name: 'About',    href: '/about' },
-  { name: 'Contact',  href: '/contact' },
+  { name: 'About', href: '/about' },
+  { name: 'Contact', href: '/contact' },
 ];
 
 /*==== HOME PAGE CONSTS ====*/
@@ -46,10 +47,12 @@ export const socials = [
   { name: 'GitHub', href: 'https://github.com' },
   { name: 'Twitter', href: 'https://twitter.com' },
   { name: 'LinkedIn', href: 'https://linkedin.com' },
+    { name: 'Youtube', href: 'https://youtube.com' },
 ];
 
 
-export const topics=[
+export const topics = [
+   { value: 'tutoring', label: 'Tutoring' },
   { value: 'project', label: 'New project' },
   { value: 'consulting', label: 'Consulting' },
   { value: 'template', label: 'Template support' },

@@ -13,7 +13,8 @@
  * ─────────────────────────────────────────────────────────────
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { socials,topics } from '../lib/consts';
+import { socials,topics,emailAddress } from '../lib/consts';
+
 
 ---
 
@@ -33,7 +34,7 @@ import { socials,topics } from '../lib/consts';
       <div class="info-block" data-reveal="fade">
         <p class="info-label">Email</p>
         <a href="mailto:hello@janedoe.com" class="info-link">
-          hello@janedoe.com
+          {emailAddress}
         </a>
       </div>
 
