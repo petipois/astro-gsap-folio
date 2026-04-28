@@ -1,7 +1,7 @@
 ---
-title: "Project One"
+title: "The best project"
 slug: "project-1"
-description: "Project Description"
+description: "This is the best project I have ever produced"
 date: 2026-01-01
 skills: ["Astro"]
 link: "https://astrostack.petipois.com"

@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { Image } from "astro:assets";
 import { title, fullName, subtitle, companyName, workType } from "../lib/consts";
+import Jsonld from "../components/Jsonld.astro";
 const projects = await getCollection("projects");
 
 // Collect unique tags across all projects
@@ -10,6 +11,7 @@ const allTags = [...new Set(projects.flatMap((p) => p.data.skills ?? []))];
 ---
 
 <BaseLayout title={title}>
+  
   <!-- ─── HERO ─────────────────────────────────────────────── -->
   <section class="hero">
     <div class="hero-eyebrow">{workType}</div>

@@ -1,17 +1,22 @@
 ---
 import "../styles/global.css";
 import Navbar from "../components/Navbar.astro";
+import Jsonld from "../components/Jsonld.astro";
+import { fullName, companyName, workType,subtitle,siteURL } from "../lib/consts";
+
 const {
-  title = "Portfolio",
-  description = "A portfolio showcasing interactive web projects built with Astro and GSAP.",
+  title = {workType},
+  description ={subtitle}
 } = Astro.props;
-const keyword=[
+const keyword = [
   "Astro Portfolio",
   "GSAP Animations",
   "Interactive Web Design",
   "Astro Developer",
   "Web Development Projects",
-]
+];
+const canonicalURL = new URL(Astro.url.pathname, siteURL);
+const ogImage = "../images/og-image.png";
 ---
 
 <!doctype html>
@@ -22,9 +27,32 @@ const keyword=[
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="keywords" content={keyword.join(", ")} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(ogImage, Astro.url)} />
+
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={new URL(ogImage, Astro.url)} />
   </head>
   <body>
     <Navbar />
+    <Jsonld
+      type="Person"
+      data={{
+        name: fullName,
+        jobTitle: workType,
+        worksFor: {
+          "@type": "Organization",
+          name: companyName,
+        },
+      }}
+    />
     <slot />
 
     <!-- ─── FOOTER CTA ────────────────────────────────────────── -->

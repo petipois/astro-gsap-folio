@@ -1,4 +1,5 @@
 export const emailAddress = "hello@janedoe.com";
+export const siteURL = "http://localhost:4321";
 export const navLinks = [
   { name: 'Home', href: '/' },
   { name: 'Projects', href: '/projects' },
